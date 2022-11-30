@@ -17,22 +17,26 @@ global realtime; realtime = lambda: time.strftime('%W[w] %j[d] %a [%p %I-%M-%S]'
 
 def papka(x=False, y=False):
     if not x and not y:
-        print(f'{realtime()[-13:]}>> open: os.system(r"xdg-open " + {os.getcwd()})')
-        os.system(r'xdg-open '+ os.getcwd())
+        if re.match('.inu.', sys.platform):
+            print(f'{realtime()[-13:]}>> open: os.system(r"xdg-open " + {os.getcwd()})')
+            return os.system(r'xdg-open '+ os.getcwd())
+        else:
+            print(f'{realtime()[-13:]}>> open: os.system(r"explorer.exe " + {os.getcwd()})')
+            return os.system(r'explorer.exe '+ os.getcwd())
     elif x and not y:
         if x == 1:
-            empty_file = str(time.time_ns())
+            empty_file = str(time.time_ns()) + '.txt'
             print(f'{realtime()[-13:]}>> create: os.open({os.path.join(os.getcwd(), empty_file)}, os.O_CREAT)')
-            os.open(empty_file, os.O_CREAT)
+            return os.open(empty_file, os.O_CREAT)
         else:
             print(f'{realtime()[-13:]}>> os.startfile({os.path.join(os.getcwd(), x)})')
-            os.startfile(x)
+            return os.startfile(x)
     else:
         print(f'{realtime()[-13:]}>> {x}.replace({x}[{x}.rfind(".")],{y})')
-        os.startfile(x.replace(x[x.rfind('.')],y))
+        return os.startfile(x.replace(x[x.rfind('.')],y))
 
 
-def files (f=False):
+def files(f=False):
     if not f:
         return {x:y for x, y in enumerate(os.path.join(os.getcwd(),j) for i, j in sorted([(os.path.getmtime(os.path.join(os.getcwd(), j)), j,) for i, j in [(i, j) for i, j in enumerate(os.listdir()) if os.path.isfile(os.path.join(os.getcwd(), str(j)))]], key = lambda x: x[0], reverse=True))}  
     else:
@@ -41,9 +45,9 @@ def files (f=False):
 
 def sel(path=False):
     if not path:
-        return {i:os.path.join(os.getcwd(),'select',_) for i,_ in enumerate(list(files('select')))}   
+        return {i:os.path.join(os.getcwd(),'select',_) for i,_ in enumerate(list(files('select')).values())}   
     else:
-        return {i:os.path.join(os.getcwd(), 'select',path, _) for i,_ in enumerate(list(files(os.path.join(os.getcwd(),'select', path))))}
+        return {i:os.path.join(os.getcwd(), 'select',path, _) for i,_ in enumerate(list(files(os.path.join(os.getcwd(),'select', path)).values()))}
 
 
 def reader(f, x='utf-8'):
@@ -52,7 +56,7 @@ def reader(f, x='utf-8'):
     return f  
 
 
-def sql (s='', db='EGE',  y=22):
+def sql(s='', db='EGE',  y=22):
     dbo = f' [ERBD_{db}_MAIN_{str(y)}].dbo.'
     for i in set(re.findall(' dat_| res_| rbd_| rbdc_| ac_| sht_| sheets.', s, re.IGNORECASE)):
         if i == ' sheets.':
@@ -128,7 +132,7 @@ def squeez(df, x = 0):
         return {i: j for i, j in cols.items()}
 
 
-def fkey (D, val):
+def fkey(D, val):
     for i,_ in D.items():
         if _==val:
             return i
