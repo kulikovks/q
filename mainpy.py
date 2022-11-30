@@ -45,7 +45,7 @@ def files(f=False):
 
 def sel(path=False):
     if not path:
-        return {i:os.path.join(os.getcwd(),'select',_) for i,_ in enumerate(list(files('select')).values())}   
+        return {i:os.path.join(os.getcwd(),'select',_) for i,_ in enumerate(list(files('select').values()))}   
     else:
         return {i:os.path.join(os.getcwd(), 'select',path, _) for i,_ in enumerate(list(files(os.path.join(os.getcwd(),'select', path)).values()))}
 
