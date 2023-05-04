@@ -1,7 +1,6 @@
 import time
 import sys
 import os
-import psutil
 import re
 import numpy as np
 import pandas as pd
@@ -237,7 +236,6 @@ def quant(
     -------
     p: multiplier for intr_qr 
     (p->max for extend range)
-
     # top_values = q75 + (p * intr_qr)
     # bot_values = q25 - (p * intr_qr)
     '''
@@ -299,28 +297,18 @@ def idb(
     if k > df.shape[0]:
         k=df.shape[0]
     command = command.format(table)
-    if not rn:
-            df['_#concat'] = (
-                df[df.columns[0]].astype('string').fillna('')
-                .replace(to_replace ='"', value = '`',regex=True)
-                .str.cat(
-                    others=df[df.columns[1:]].astype('string').fillna('')
-                    .replace(to_replace ='"', value = '`',regex=True),
-                    sep="','"
-                ).str.replace('^.*\S+',lambda m: f"('{m.group(0)}')", regex=True)
-            )
-    else:
+    if rn:
         df.reset_index(inplace=True)
         df['index'] = df.index + 1
-        df['_#concat'] = (
-                df[df.columns[0]].astype('string').fillna('')
-                .replace(to_replace ='"', value = '`',regex=True)
-                .str.cat(
-                    others=df[df.columns[1:]].astype('string').fillna('')
-                    .replace(to_replace ='"', value = '`',regex=True),
-                    sep="','"
-                ).str.replace('^.*\S+',lambda m: f"('{m.group(0)}')", regex=True)
-            )
+    df['_#concat'] = (
+	df[df.columns[0]].astype('string').fillna('')
+	.replace(to_replace ='"', value = '`',regex=True)
+	.str.cat(
+		others=df[df.columns[1:]].astype('string').fillna('')
+		.replace(to_replace ='"', value = '`',regex=True),
+		sep="','"
+	).str.replace('^.*\S+',lambda m: f"('{m.group(0)}')", regex=True)
+    )
     ins=list()
     if v==1:
         print(f"parts: {-(-df.shape[0] // k)}")
@@ -348,6 +336,103 @@ def idb(
         print('\n****')
         print(*ins,sep='\n')
     return ins
+
+def xlconvert(
+    writer:pd.io.excel._openpyxl.OpenpyxlWriter,
+    dates:(bool, str)=True,
+    time:bool=True,
+    head:bool=False)-> None:
+    '''
+    call it for convert columns in Excel-file
+
+    --------
+    dates: 
+        if True then convert dates in date-format ->  YYYY-MM-DD 
+        if False then convert dates in text-format ->  YYYY-MM-DD 
+        can be pattern (string)
+    time: if True then setting time format (if exists) -> date-format +  HH:MM:SS.000 
+    head: if True  then convert header cells in text-format
+    
+    --------
+    example:
+    
+    filename = 'example.xlsx'
+    with pd.ExcelWriter(filename) as writer:
+        data.to_excel(writer, index=False)
+        convert_toExcel(writer, head=True, dates='dd.mm', time=False)
+        
+    '''
+    try:
+        assert isinstance(writer.book.worksheets, list)
+    except Exception as err:
+        return err
+    
+    if isinstance(dates, str):
+        date_format = dates
+    else:
+        date_format = 'YYYY-MM-DD'
+        
+    func = lambda x : max(map(int, x.strftime('%T%f').split(':')))
+    ws = writer.book.active
+    last_row = ws.max_row
+    last_col = ws.max_column
+    head_row = 0
+    min_check_row = list()
+    
+    for i in range(1, last_row):
+        if not ws.cell(i, last_col).has_style:
+            head_row = i - 1
+            break
+            
+    if head and head_row:
+        for col in range(1, last_col + 1):
+            for row in range(1, head_row + 1):
+                ws.cell(row, col).number_format = '@'
+                
+    for col in range(1, last_col + 1):
+        for check_row in range(head_row + 1, last_row + 1):
+            if ws.cell(check_row, col).value != None and ws.cell(check_row, col).value != '':
+                checktype = ws.cell(check_row, col).value
+                min_check_row.append(check_row)
+                break
+        
+        if last_row-head_row-check_row + 1 <= 0:
+            continue
+            
+        if isinstance(checktype, pd.Timestamp):
+            if not func(ws.cell(check_row, col).value) or not time:
+                if not dates:
+                    for row in range(check_row, last_row + 1):
+                        ws.cell(row, col).number_format = date_format
+                        ws.cell(row, col).value = str(ws.cell(row, col).value.date())
+                        ws.cell(row, col).number_format = '@'
+                else:
+                    for row in range(check_row, last_row + 1):
+                        ws.cell(row, col).number_format = date_format
+                        
+            else:
+                if not dates:
+                    for row in range(check_row, last_row + 1):
+                        ws.cell(row, col).number_format = date_format + ' HH:MM:SS.000'
+                        ws.cell(row, col).value = str(ws.cell(row, col).value)
+                        ws.cell(row, col).number_format = '@'
+                else:
+                    for row in range(check_row, last_row + 1):
+                        ws.cell(row, col).number_format = date_format + ' HH:MM:SS.000'
+                        
+        elif isinstance(checktype, (bool, str)):
+            for row in range(check_row, last_row + 1):
+                ws.cell(row, col).number_format = '@'       
+        elif isinstance(checktype, int):
+            for row in range(check_row, last_row + 1):
+                ws.cell(row, col).number_format = '0'
+        elif isinstance(checktype, float):
+            for row in range(check_row, last_row + 1):
+                ws.cell(row, col).number_format = '0.00'
+                
+    if min(min_check_row) - head_row - 1:
+        ws.delete_rows(head_row + 1)
+    return
 
 
 pd.set_option('display.max_columns', 0) 
