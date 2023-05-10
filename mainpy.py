@@ -255,8 +255,6 @@ def idb(
     repl:bool=False
 ) -> (None, list):
     '''
-    convert dataframe for upload to database with respaces and replace " on `
-    *\tcan use: idb(df.replace("'", '"', regex=True))
     if noret = False then return list 
     if noret = True then print str 
     -------
@@ -265,6 +263,7 @@ def idb(
     table: table name in database;
     v: verbose
     noret = False (if True then will be returned None object and batches will be printed)
+    repl: if True then resplaces
     -------
     example:
       idb(df, noret=True, v=1)
