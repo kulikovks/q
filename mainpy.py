@@ -1,7 +1,4 @@
-import time
-import sys
-import os
-import re
+import os, sys, time, re
 import numpy as np
 import pandas as pd
 
@@ -42,28 +39,42 @@ except NameError as error:
     print('from (SERVER, DATABASE, UID, PWD):\n\t%s\ncreate_engine from sqlalchemy not in use\n' % error)
 
 
-def papka(x:(bool,str,int,float)=False) -> (None, float):
+def papka(x:(bool,str,int)=False) -> (None, float):
     '''
     open directory (x=False)
     -------
-    if x is numeric or True then create and open  `.txt ` file
-    if x is string then start ` x ` file
+    if x is int then create empty .txt and return his name
+    if x is string then get or create  x  file (return None)
+    ---
+    papka(papka(1)) # open empty .txt
+    papka(papka('filename.py')) # create 'filename.py' and open directory
+    papka(files(papka('filename.py'))[0]) # create and open 'filename.py'
     '''
     if not x:
         if re.match('.inu.', sys.platform):
             print(f'{realtime()[-13:]}>> open: os.system(r"xdg-open " + {os.getcwd()})')
-            return os.system(r'xdg-open '+ os.getcwd())
+            os.system(r'xdg-open '+ os.getcwd())
+            return 
         else:
             print(f'{realtime()[-13:]}>> open: os.system(r"explorer.exe " + {os.getcwd()})')
-            return os.system(r'explorer.exe '+ os.getcwd())
+            os.system(r'explorer.exe '+ os.getcwd())
+            return 
     elif x:
-        if isinstance(x, (int, float)):
+        if isinstance(x, int):
             empty_file = str(time.time_ns()) + '.txt'
-            print(f'{realtime()[-13:]}>> create: os.open({os.path.join(os.getcwd(), empty_file)}, os.O_CREAT)')
-            return os.open(empty_file, os.O_CREAT)
+            print(f'{realtime()[-13:]}>> create: {os.path.join(os.getcwd(), empty_file)}')
+            with open(empty_file, 'w'):
+                pass
+            return empty_file
         elif isinstance(x, str):
+            try:
+                os.startfile(x)
+            except Exception as err:
+                with open(x, 'w'):
+                    pass
+                return
             print(f'{realtime()[-13:]}>> os.startfile({os.path.join(os.getcwd(), x)})')
-            return os.startfile(x)
+            return
         else: 
             return -0.1
 
@@ -102,25 +113,6 @@ def reader(f:str, x:str='utf-8') -> str:
     with open(f, mode = 'r', encoding=x) as _:
         f = _.read()
     return f  
-
-
-def sql(
-    s:str='',
-    db:str='EGE',
-    y:(int,str)=22
-) -> str:
-    '''
-    update select for non default database
-    -------
-    pd.read_sql_query(sql(sel('20220131')[0]), db='gia', y=22)
-    '''
-    dbo = f' [ERBD_{db}_MAIN_{str(y)}].dbo.'
-    for i in set(re.findall(' dat_| res_| rbd_| rbdc_| ac_| sht_| sheets.', s, re.IGNORECASE)):
-        if i == ' sheets.':
-            s = s.replace(i, dbo[:-4]+i[1:])
-            continue
-        s = s.replace(i, dbo+i[1:])
-    return s
 
 
 def squeez(
@@ -261,7 +253,8 @@ def idb(
     command:str='INSERT INTO {} VALUES ',
     n:int=0,
     v:int=0,
-    noret:bool=False
+    noret:bool=False,
+    repl:bool=False
 ) -> (None, list):
     '''
     convert dataframe for upload to database with respaces and replace " on `
@@ -275,21 +268,21 @@ def idb(
     command: command for head in batch;
     n: number table (if n != 0: table=f'##tmp{n}_{time.strftime("%jd_%p%I%M")}');
     v: verbose
-    noret = False (if `True` then will be returned `None` object and batches will be printed)
+    noret = False (if True then will be returned None object and batches will be printed)
     -------
     example:
-    	idb(df, noret=True, v=1)
+      idb(df, noret=True, v=1)
     ===
-    	idb(df, k=4, noret=False, v=1)
+      idb(df, k=4, noret=False, v=1)
     ===
-    	# for silence:
+      # for silence:
         res = idb(pd.read_clipboard(), k=100, rn=True, v=0, noret=False)
         # print(res[-1])
         with engine.connect() as conn:
             for i in range(len(res)):    
                 conn.execute(res[i])
                 
-    # if need another `engine` use `create_engine` from `sqlalchemy`: 
+    # if need another engine use create_engine from sqlalchemy: 
     #     _engine = create_engine(str(engine.url).replace('_MAIN_22', '_MAIN_23'))'''
     df = data.copy(deep=True)
     if n != 0:
@@ -301,35 +294,47 @@ def idb(
         df.reset_index(inplace=True)
         df['index'] = df.index + 1
     df['_#concat'] = (
-	df[df.columns[0]].astype('string').fillna('')
-	.replace(to_replace ='"', value = '`',regex=True)
-	.str.cat(
-		others=df[df.columns[1:]].astype('string').fillna('')
-		.replace(to_replace ='"', value = '`',regex=True),
-		sep="','"
-	).str.replace('^.*\S+',lambda m: f"('{m.group(0)}')", regex=True)
+        df[df.columns[0]].astype('string').fillna('')
+        .replace(to_replace ='"', value = '`',regex=True)
+        .str.cat(
+            others=df[df.columns[1:]].astype('string').fillna('')
+            .replace(to_replace ='"', value = '`',regex=True),
+            sep="','"
+        ).str.replace('^.*\S+',lambda m: f"('{m.group(0)}')", regex=True)
     )
     ins=list()
     if v==1:
         print(f"parts: {-(-df.shape[0] // k)}")
-    for i in range(1, (-(-df.shape[0] // k) + 1)):
-        if v==1:
-            print(i, f'{(i-1)*k} : {(i-1)*k+k-1 if (i-1)*k+k-1 < df.shape[0] else df.shape[0]}')
-        ins.append(
-            '''{}{}'''.format(
-                command,
-                df.loc[(i-1)*k : (i-1)*k+k-1, '_#concat']
-                .replace(to_replace ='\s+', value = ' ',regex=True)
-                .replace(to_replace ="'[\s+]", value = "'",regex=True)
-                .replace(to_replace ="[\s+]'", value = "'",regex=True)
-                .replace(to_replace ="\s+[/-]", value = "-",regex=True)
-                .replace(to_replace ="[/-]\s+", value = "-",regex=True)
-                .str.cat(sep=',')
+    if repl:
+        for i in range(1, (-(-df.shape[0] // k) + 1)):
+            if v==1:
+                print(i, f'{(i-1)*k} : {(i-1)*k+k-1 if (i-1)*k+k-1 < df.shape[0] else df.shape[0]}')
+            ins.append(
+                '''{}{}'''.format(
+                    command,
+                    df.loc[(i-1)*k : (i-1)*k+k-1, '_#concat']
+                    .replace(to_replace ="\s+[\-]", value = " - ",regex=True)
+                    .replace(to_replace ="[\-]\s+", value = " - ",regex=True)
+                    .replace(to_replace ='\s+', value = ' ',regex=True)
+                    .str.cat(sep=',')
+                )
             )
-        )
-        if v==1 and not noret:
-            print(ins[-1],'\n==============')
-    if noret: 
+            if v==1 and not noret:
+                print(ins[-1],'\n==============')
+    else:
+        for i in range(1, (-(-df.shape[0] // k) + 1)):
+            if v==1:
+                print(i, f'{(i-1)*k} : {(i-1)*k+k-1 if (i-1)*k+k-1 < df.shape[0] else df.shape[0]}')
+            ins.append(
+                '''{}{}'''.format(
+                    command,
+                    df.loc[(i-1)*k : (i-1)*k+k-1, '_#concat']
+                    .str.cat(sep=',')
+                )
+            )
+            if v==1 and not noret:
+                print(ins[-1],'\n==============')
+    if noret:
         print('***\n',*ins,sep='\n')
         return
     if v == 1:
@@ -337,29 +342,35 @@ def idb(
         print(*ins,sep='\n')
     return ins
 
+
 def xlconvert(
     writer:pd.io.excel._openpyxl.OpenpyxlWriter,
+    num:bool=False,
     dates:(bool, str)=True,
     time:bool=True,
     head:bool=False)-> None:
     '''
     call it for convert columns in Excel-file
-
     --------
+    num: if Ture then append whitespace between numbers (for visual design)
     dates: 
         if True then convert dates in date-format ->  YYYY-MM-DD 
         if False then convert dates in text-format ->  YYYY-MM-DD 
         can be pattern (string)
-    time: if True then setting time format (if exists) -> date-format +  HH:MM:SS.000 
-    head: if True  then convert header cells in text-format
+    time: 
+        if True then setting time format (if exists) -> date-format + time(h:mm:ss.ms)
+        ! if False and  dates == False  then delete time-value in cell
+    head: if True then convert header cells in text-format
     
     --------
     example:
     
     filename = 'example.xlsx'
-    with pd.ExcelWriter(filename) as writer:
-        data.to_excel(writer, index=False)
-        convert_toExcel(writer, head=True, dates='dd.mm', time=False)
+    with pd.ExcelWriter('try.xlsx') as w:
+        data.to_excel(w, sheet_name = 's1')
+        xlconvert(w, dates='d.mm', time=True, head=True, num=True)
+    #     xlconvert(w, dates=True, time=False, head=True) # correct design date-dtype (in excel)
+    #     xlconvert(w, dates=False)
         
     '''
     try:
@@ -369,69 +380,82 @@ def xlconvert(
     
     if isinstance(dates, str):
         date_format = dates
+    else: 
+        if not time:
+            date_format = r'yyyy\-mm\-dd;@'
+        else:
+            date_format = r'yyyy\-mm\-dd'
+
+    if num:
+        inum = r'#,##0_);(#,##0)'
+        fnum = r'#,##0.00_);(#,##0.00)'
     else:
-        date_format = 'YYYY-MM-DD'
+        inum = r'0'
+        fnum = r'0,00'
         
     func = lambda x : max(map(int, x.strftime('%T%f').split(':')))
-    ws = writer.book.active
-    last_row = ws.max_row
-    last_col = ws.max_column
-    head_row = 0
-    min_check_row = list()
+    sheets = writer.book.worksheets
     
-    for i in range(1, last_row):
-        if not ws.cell(i, last_col).has_style:
-            head_row = i - 1
-            break
-            
-    if head and head_row:
-        for col in range(1, last_col + 1):
-            for row in range(1, head_row + 1):
-                ws.cell(row, col).number_format = '@'
-                
-    for col in range(1, last_col + 1):
-        for check_row in range(head_row + 1, last_row + 1):
-            if ws.cell(check_row, col).value != None and ws.cell(check_row, col).value != '':
-                checktype = ws.cell(check_row, col).value
-                min_check_row.append(check_row)
+    for sheet in range(0, len(writer.book.worksheets)):
+        ws = writer.book.worksheets[sheet]
+        last_row = ws.max_row
+        last_col = ws.max_column
+        head_row = 0
+        min_check_row = list()
+
+        for i in range(1, last_row):
+            if not ws.cell(i, last_col).has_style:
+                head_row = i - 1
                 break
-        
-        if last_row-head_row-check_row + 1 <= 0:
-            continue
-            
-        if isinstance(checktype, pd.Timestamp):
-            if not func(ws.cell(check_row, col).value) or not time:
-                if not dates:
-                    for row in range(check_row, last_row + 1):
-                        ws.cell(row, col).number_format = date_format
-                        ws.cell(row, col).value = str(ws.cell(row, col).value.date())
-                        ws.cell(row, col).number_format = '@'
+
+        if head and head_row:
+            for col in range(1, last_col + 1):
+                for row in range(1, head_row + 1):
+                    ws.cell(row, col).number_format = '@'
+
+        for col in range(1, last_col + 1):
+            for check_row in range(head_row + 1, last_row + 1):
+                if ws.cell(check_row, col).value != None and ws.cell(check_row, col).value != '':
+                    checktype = ws.cell(check_row, col).value
+                    min_check_row.append(check_row)
+                    break
+
+            if last_row-head_row-check_row + 1 <= 0:
+                continue
+
+            if isinstance(checktype, pd.Timestamp):
+                if not func(ws.cell(check_row, col).value) or not time:
+                    if not dates:
+                        for row in range(check_row, last_row + 1):
+                            ws.cell(row, col).number_format = date_format
+                            ws.cell(row, col).value = str(ws.cell(row, col).value.date())
+                            ws.cell(row, col).number_format = '@'
+                    else:
+                        for row in range(check_row, last_row + 1):
+                            ws.cell(row, col).number_format = date_format
+
                 else:
-                    for row in range(check_row, last_row + 1):
-                        ws.cell(row, col).number_format = date_format
+                    if not dates:
+                        for row in range(check_row, last_row + 1):
+                            ws.cell(row, col).number_format = date_format + r' h:mm:ss.000'
+                            ws.cell(row, col).value = str(ws.cell(row, col).value)
+                            ws.cell(row, col).number_format = '@'
+                    else:
+                        for row in range(check_row, last_row + 1):
+                            ws.cell(row, col).number_format = date_format + r' h:mm:ss.000'
                         
-            else:
-                if not dates:
-                    for row in range(check_row, last_row + 1):
-                        ws.cell(row, col).number_format = date_format + ' HH:MM:SS.000'
-                        ws.cell(row, col).value = str(ws.cell(row, col).value)
-                        ws.cell(row, col).number_format = '@'
-                else:
-                    for row in range(check_row, last_row + 1):
-                        ws.cell(row, col).number_format = date_format + ' HH:MM:SS.000'
-                        
-        elif isinstance(checktype, (bool, str)):
-            for row in range(check_row, last_row + 1):
-                ws.cell(row, col).number_format = '@'       
-        elif isinstance(checktype, int):
-            for row in range(check_row, last_row + 1):
-                ws.cell(row, col).number_format = '0'
-        elif isinstance(checktype, float):
-            for row in range(check_row, last_row + 1):
-                ws.cell(row, col).number_format = '0.00'
-                
-    if min(min_check_row) - head_row - 1:
-        ws.delete_rows(head_row + 1)
+            elif isinstance(checktype, (bool, str)):
+                for row in range(check_row, last_row + 1):
+                    ws.cell(row, col).number_format = '@'       
+            elif isinstance(checktype, int):
+                for row in range(check_row, last_row + 1):
+                    ws.cell(row, col).number_format = inum
+            elif isinstance(checktype, float):
+                for row in range(check_row, last_row + 1):
+                    ws.cell(row, col).number_format = fnum
+
+        if min(min_check_row) - head_row - 1:
+            ws.delete_rows(head_row + 1)
     return
 
 
