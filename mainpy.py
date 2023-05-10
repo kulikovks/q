@@ -250,8 +250,6 @@ def idb(
     k:int=1000,
     rn:bool=False,
     table:str=f'##tmp_{time.strftime("%jd")}',
-    command:str='INSERT INTO {} VALUES ',
-    n:int=0,
     v:int=0,
     noret:bool=False,
     repl:bool=False
@@ -265,8 +263,6 @@ def idb(
     k: rows in batch;
     rn: if true then upload with index (range 1 to n);
     table: table name in database;
-    command: command for head in batch;
-    n: number table (if n != 0: table=f'##tmp{n}_{time.strftime("%jd_%p%I%M")}');
     v: verbose
     noret = False (if True then will be returned None object and batches will be printed)
     -------
@@ -285,22 +281,18 @@ def idb(
     # if need another engine use create_engine from sqlalchemy: 
     #     _engine = create_engine(str(engine.url).replace('_MAIN_22', '_MAIN_23'))'''
     df = data.copy(deep=True)
-    if n != 0:
-        table=f'##tmp{n}_{time.strftime("%jd_%p%I%M")}'
     if k > df.shape[0]:
-        k=df.shape[0]
-    command = command.format(table)
+        k = df.shape[0]
+    command = 'INSERT INTO {} VALUES '.format(table)
     if rn:
         df.reset_index(inplace=True)
         df['index'] = df.index + 1
     df['_#concat'] = (
         df[df.columns[0]].astype('string').fillna('')
-        .replace(to_replace ='"', value = '`',regex=True)
         .str.cat(
-            others=df[df.columns[1:]].astype('string').fillna('')
-            .replace(to_replace ='"', value = '`',regex=True),
+            others=df[df.columns[1:]].astype('string').fillna(''),
             sep="','"
-        ).str.replace('^.*\S+',lambda m: f"('{m.group(0)}')", regex=True)
+        ).str.replace('^.*\S+', lambda m: f"('{m.group(0)}')", regex=True)
     )
     ins=list()
     if v==1:
@@ -308,13 +300,11 @@ def idb(
     if repl:
         for i in range(1, (-(-df.shape[0] // k) + 1)):
             if v==1:
-                print(i, f'{(i-1)*k} : {(i-1)*k+k-1 if (i-1)*k+k-1 < df.shape[0] else df.shape[0]}')
+                print(f'#{i}: {(i-1)*k}--{(i-1)*k+k-1 if (i-1)*k+k-1 < df.shape[0] else df.shape[0]}')
             ins.append(
                 '''{}{}'''.format(
                     command,
                     df.loc[(i-1)*k : (i-1)*k+k-1, '_#concat']
-                    .replace(to_replace ="\s+[\-]", value = " - ",regex=True)
-                    .replace(to_replace ="[\-]\s+", value = " - ",regex=True)
                     .replace(to_replace ='\s+', value = ' ',regex=True)
                     .str.cat(sep=',')
                 )
@@ -324,7 +314,7 @@ def idb(
     else:
         for i in range(1, (-(-df.shape[0] // k) + 1)):
             if v==1:
-                print(i, f'{(i-1)*k} : {(i-1)*k+k-1 if (i-1)*k+k-1 < df.shape[0] else df.shape[0]}')
+                print(f'#{i}: {(i-1)*k}--{(i-1)*k+k-1 if (i-1)*k+k-1 < df.shape[0] else df.shape[0]}')
             ins.append(
                 '''{}{}'''.format(
                     command,
@@ -394,7 +384,6 @@ def xlconvert(
         fnum = r'0,00'
         
     func = lambda x : max(map(int, x.strftime('%T%f').split(':')))
-    sheets = writer.book.worksheets
     
     for sheet in range(0, len(writer.book.worksheets)):
         ws = writer.book.worksheets[sheet]
