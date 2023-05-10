@@ -263,7 +263,7 @@ def idb(
     table: table name in database;
     v: verbose
     noret = False (if True then will be returned None object and batches will be printed)
-    repl: if True then resplaces
+    repl: if True then respaces
     -------
     example:
       idb(df, noret=True, v=1)
