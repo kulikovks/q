@@ -1,425 +1,313 @@
-## created 25.11.2020
-def day(y, m, d, h):
-    y, m, d, h = int(y), int(m), int(d), h
-    result = list()
-    lst=list()
-    n = ['дерево', 'огонь', 'земля', 'металл', 'вода']
-    z = ['крыса', 'бык', 'тигр', 'кролик', 'дракон', 'змея', 'лошадь', 'коза', 'обезьяна', 'петух', 'собака', 'свинья']
-    for i in range(0, 60):
-        lst.append([n[(i//2)%5] +' '+ z[i%12]])    
+def makekart(y:int, m:int, d:int, *h, todf:bool=False, verbose:bool=False)->list:
+    h = h[0] if h else None
+    karta = list()
+    n = list(range(1,6))
+    z = list(range(1,13))
+    lst = [[n[(i - 1) // 2 % 5], z[(i - 1) % 12]] for i in range(1,62)]
 
-    G = lst[(int(y)%60)-4]
-    zv = lst[int((str(lst.index(G)%5))+str((lst.index(G)%5)*2)):(int(
-        (str(lst.index(G)%5))+str((lst.index(G)%5)*2))+14)]
-    if (d<6 and int(m) in (1,3,5,6)) or (d<7 and int(m) in (7,11,12)) or (
-            d<8 and int(m) in (8,9,10)) or (d<4 and int(m) == 2) or (
-                d<5 and int(m) == 4): 
-        M = zv[int(m)-1]
-    else:
-        M = zv[int(m)]
- 
+    G = lst[y % 60 - 4]
+    zv = lst[lst.index(G) % 5 * 10 + lst.index(G) % 5 * 2:
+        lst.index(G) % 5 * 10 + lst.index(G) % 5 * 2 + 14]
+    M = (zv[m - 1]
+        if (d < 4 and m == 2)
+        or (d < 5 and m == 4)
+        or (d < 6 and m in (1, 3, 5, 6))
+        or (d < 7 and m in (7, 11, 12))
+        or (d < 8 and m in (8, 9, 10))
+        else zv[m])
+
     y_c, y_n, m_n = 0, 0, 0
-    if (y % 4 == 0 and y % 100 != 0) or y % 400 == 0:
+    if not (y % 4 == 0 and y % 100 != 0) or y % 400:
         if m < 3:
-            m_n = int(((1+m)%2)*30 + round((0.6 * (m+13) -3)-6))
+            m_n = int((m + 1) % 2 * 30 + round((0.6 * (m + 13) - 3) - 6))
         if m == 3:
-            m_n = round(((m+1)%2)*30 + (0.6 * (m+1) - 3))
+            m_n = round((m + 1) % 2 * 30 + (0.6 * (m + 1) - 3))
         if m > 3:
-            m_n = int(((m+1)%2)*30 + (0.6 * (m+1) - 3))
+            m_n = int((m + 1) % 2 * 30 + (0.6 * (m + 1) - 3))
     else: 
         if m < 3:
-            m_n = int(((1+m)%2)*30 + round((0.6 * (m+13) -3)-5))
+            m_n = int((1 + m) % 2 * 30 + round((0.6 * (m + 13) -3 ) - 5))
         if m == 3:
-            m_n = round(((m+1)%2)*30 + (0.6 * (m+1) - 3))
+            m_n = round((m + 1) % 2 * 30 + (0.6 * (m + 1) - 3))
         if m > 3:
-            m_n = int(((m+1)%2)*30 + (0.6 * (m+1) - 3))
+            m_n = int((m + 1) % 2 * 30 + (0.6 * (m + 1) - 3))
 
-    y_c = ((y//400)-(y//100))+10
-    y_n = ((((y%400)%80)%12)*5 +(((y%400)%80)//4))%60
-    k = ((y_n+y_c+m_n+d)%60)-1
+    y_c = y // 400 - y // 100 + 10
+    y_n = (y % 400 % 80  % 12 * 5 + y % 400  % 80  // 4) % 60
+    k = (y_n + y_c + m_n + d) % 60 - 1
+
+    if h is None:
+        karta.append(None)
+    else:
+        time = lst[k % 5 * 10 + 2 * (k % 5):k % 5 * 10 + 2 * (k % 5) + 13]
+        for i in range(0, 25, 2):
+            if i-1 <= h < i + 1:
+                karta.append([time[i // 2][0] if not time.index(time[i // 2]) % 2 else -(time[i // 2][0]), time[i // 2][1]])
+                              
     
-    result.append(['yan']+lst[k] if k%2==0 else ['in']+lst[k])    
-    result.append(['yan']+M if lst.index(M)%2==0 else ['in']+M)
-    if M in zv[0:2]:
-        result.append(['yan']+lst[lst.index(G)-1] if (
-            lst.index(G)-1)%2==0 else ['in']+lst[lst.index(G)-1])
-    if M not in zv[0:2]:
-        result.append(['yan']+G if lst.index(G)%2==0 else ['in']+G)
+    karta.append([lst[k][0] if lst.index(lst[k]) % 2 == 0 else -(lst[k][0]), lst[k][1]])
+    karta.append([M[0] if lst.index(M) % 2 == 0 else -(M[0]), M[1]])
+    karta.append([G[0] if not (G[0]) % 2 else -(G[0]), G[1]] if M not in zv[0:2]
+                  else [lst[G[0]+1][0] if not (lst[G[0]+1][0]) % 2 else -(lst[G[0]+1][0]), lst[G[0]+1][1]])
 
-    time =[]
-    if k%5==0:
-        time = lst[0:13]
-    if k%5==1:
-        time = lst[12:25]
-    if k%5==2:
-        time = lst[24:37]
-    if k%5==3:
-        time = lst[36:49]
-    if k%5==4:
-        time = lst[48::]+[lst[0]]
+    if verbose:
+        elements = dict(zip(n, ['дерево', 'огонь', 'земля', 'металл', 'вода']))
+        bsts = dict(zip(z, ['крыса', 'бык', 'тигр', 'кролик', 'дракон', 'змея', 'лошадь', 'коза', 'обезьяна', 'петух', 'собака', 'свинья']))
+        print(*zip(['-'.join(['yan' if l[0] > 0 else 'in', elements[abs(l[0])]]) for l in karta if l],
+                   [bsts[l[1]] for l in karta if l]))
+    return karta
+
+
+def stars(kart:list, describe:bool=False)->list:
+    def descr(starlist:list, elems:int)->list:
+        elements = dict(zip(list(range(1,6)), ['дерево', 'огонь', 'земля', 'металл', 'вода'])) 
+        bsts = dict(zip(list(range(1,13)),
+                        ['крыса', 'бык', 'тигр', 'кролик', 'дракон', 'змея', 'лошадь', 'коза',
+                         'обезьяна', 'петух', 'собака', 'свинья']))
+        flag = False
+        func = lambda x, e=True: '-'.join(['инь' if x<0 else 'ян', elements[abs(x)]]) if e else bsts[x]
+        if elems == 1:
+            return list(map(' | '.join, list(map(lambda x: [func(x[0]), func(x[1], flag)], starlist))))
+        elif elems == 2:
+            return list(map(' | '.join, list(map(lambda x: [func(x[0], flag), func(x[1])], starlist))))
+        else:
+            return list(map(' | '.join, list(map(lambda x: [func(x[0], flag), func(x[1], flag)], starlist))))
+    
+    def add(c:int, name:str):
+        baz[c].append(name)
+        if describe and name not in lst.keys():
+            lst[name] = descr(star, elems)
+        return
+    
+    forzip = [['час'], ['день'], ['месяц'], ['год']]
+    polar = list(i.copy() for i in forzip)
+    dd, dy = kart[1][0], kart[3][0]
+    day, year = kart[1][1], kart[3][1]
+    seq = range(1 if not kart[0] else 0, 4)
+    pol = ['братство', 'грабитель богатства', 'дух пищи', 'дух мятежа', 
+           'косое богатство', 'прямое богатство', 'косая власть', 'прямая власть',
+           'косая печать', 'прямая печать']
+ 
+    func = lambda x: list(pol[i * 2:i * 2 + 2][dd * x[0] < 0] for i in range(5)
+                      if abs(x[0]) - 1 == (abs(dd) - 1 + i) % 5)
+    for c in seq:
+        if c != 1:
+            polar[c].append(*func(kart[c]))
+    
+    baz = list(i.copy() for i in forzip)
+    baz.append(['glob'])
+    
+    ground_sky_func = lambda x: any(kart[x][1] == i[1] for i in star if kart[x][0] == i[0])
+    ground_func = lambda x, y: any(kart[x][1] == i[1] for i in star if i[0] == y)
+    dd_dy_func = lambda x: any(kart[x][1] == i[1] for i in star if i[0] in (dd, dy))  
+    day_year_func = lambda x: any(kart[x][1] == i[1] and i[0] == day and x != 1
+                          or kart[x][1] == i[1] and i[0] == year and x != 3
+                          for i in star if i[0] in (day, year))
+    
+    lst = dict() if describe else None
+    elems = False
+    rng = list(range(4,13,4)) + list(range(3,12,4)) + list(range(2,11,4)) + list(range(1,10,4))
+    jiv = list(); list(map(lambda x: jiv.extend([x]*3), (1,4,7,10)))
+    star = list(zip(rng, jiv))
+    [add(c, 'цветок персика') for c in seq if day_year_func(c)]
+
+    rng = list(range(1,10,4))+list(range(2,11,4))+list(range(3,12,4))+list(range(4,13,4))
+    jiv = list(); list(map(lambda x: jiv.extend([x]*3), (3, 12, 9, 6)))
+    star = list(zip(rng, jiv))
+    [add(c, 'почтовая лошадь') for c in seq if day_year_func(c)]
+
+    jiv = list(); list(map(lambda x: jiv.extend([x]*3), (1, 10, 7, 4)))
+    star = list(zip(rng, jiv))
+    [add(c, 'звезда генерала') for c in seq if day_year_func(c)]
+
+    jiv = list(); list(map(lambda x: jiv.extend([x]*3), (5, 2, 11, 8)))
+    star = list(zip(rng, jiv))
+    [add(c, 'звезда искусств') for c in seq if day_year_func(c)]
+
+    jiv = list(); list(map(lambda x: jiv.extend([x]*3), (12, 9, 6, 3)))
+    star = list(zip(rng, jiv))
+    [add(c, 'звезда бедствий') for c in seq if day_year_func(c)]
+
+    rng = list(i % 12 if i != 12 else i % 13 for i in range(3,15))
+    jiv = list(); list(map(lambda x: jiv.extend([x]*3), [2,5,8,11]))
+    star = list(zip(rng,jiv))
+    [add(c, 'звезда одиночества (ж)') for c in seq if day_year_func(c)]
+
+    jiv = list(); list(map(lambda x: jiv.extend([x]*3), [6, 9, 12, 3]))
+    star = list(zip(rng, jiv))
+    [add(c, 'звезда одиночества (м)') for c in seq if day_year_func(c)]
+
+    rng = list(range(1, 13))
+    jiv = list(i % 12 + 1 for i in range(15, 3, -1))
+    star = list(zip(rng,jiv))
+    [add(c, 'красный луань') for c in seq if c != 1 and ground_func(c, day)]
+    
+    rng = list(range(1,13))
+    jiv = list(i%12 if i !=12 else i % 13 for i in range(8,20))
+    star = list(zip(rng, jiv))
+    [add(c, 'исходное созвезие (м+ / ж-)') for c in seq if ground_func(c, year)]
+    
+    jiv = [i%12 if i != 12 else i%13 for i in range(6,18)]
+    star = list(zip(rng, jiv))
+    [add(c, 'исходное созвезие (м- / ж+)') for c in seq if ground_func(c, year)]
+
+    jiv = [5, 2, 11, 8] * 3
+    star = list(zip(rng, jiv))
+    [add(c, 'цветущий балдахин') for c in seq if day_year_func(c)]
+
+    ## no lst      
+    rng = [(0,6), (4, 0), (-2,0),  (0,9), (5, 0), (-4,0),  (0,12), (1, 0), (-5,0),  (0,3), (2, 0), (-1,0)] 
+    jiv = list(range(1,13))
+    star = list(zip(rng, jiv))
+    func = lambda x: any(i[0][0] == kart[x][0] or i[0][1] == kart[x][1] for i in star if kart[2][1] == i[1])
+    [baz[c].append('небесная добродетель') for c in seq if func(c)]
+#     [add(c, 'небесная добродетель') for c in seq if func(c)]    ##
+
+    elems = 1
+    rng = list(); list(map(lambda x: rng.extend([x, x, -x, -x]), range(1,6)))
+    jiv = [2,8,1,9,10,12,10,12,2,8,1,9,2,8,3,7,4,6,4,6]
+    star= list(zip(rng, jiv))
+    [add(c, 'благородный') for c in seq if dd_dy_func(c)]
+    
+    jiv = [1,7, 2,6, 3,5, 10,12, 1,7, 2,6, 1,7, 8,12, 9,11, 4,6]
+    star= list(zip(rng, jiv))
+    [add(1, 'благородный 6ти союзов') for i in star if i[0] == dd and i[1] == day]
+    
+    jiv = [4,0,3,5,7,0,6,8,7,0,6,8,10,0,9,11,1,0,2,12]
+    star = list(filter(lambda x: x[1] != 0, zip(rng, jiv)))
+    [add(c, 'овечий нож') for c in seq if ground_func(c, dd)]
+    
+    rng = list(); list(map(lambda x: rng.extend([x, -x]), range(1,6)))
+    jiv = [3, 4, 6, 7, 6, 7, 9, 10, 12, 1]
+    star = list(zip(rng, jiv))
+    [add(c, '10 небесных стволов') for c in seq if ground_func(c, dd)]
+    
+    jiv = list(i % 12 if i < 11 else (i - 3) % 13 for i in range(6, 21) if i not in (8, 11, 14, 16, 18)) 
+    star = list(zip(rng, jiv))
+    [add(c, 'звезда академика') for c in seq if dd_dy_func(c)]
+    
+    jiv = [7, 7, 3, 8, 5, 5, 11, 10, 1, 9]
+    star = list(zip(rng,jiv))
+    [add(c, 'ша цветущего персика') for c in seq if ground_func(c, dd)]
+    
+    jiv = [5, 6, 8, 9, 8, 9, 11, 12, 2, 3]
+    star = list(zip(rng, jiv))
+    [add(c, 'золотая карета') for c in seq if ground_func(c, dd)]
+    
+    jiv = [5, 6, 9, 12, 11, 2, 5, 6, 9, 12]
+    star = list(zip(rng,jiv))
+    [add(c, 'звезда банкротства') for c in seq if ground_sky_func(c)]
+    
+    rng = [3, 4, 4, 5]
+    jiv = [11, 5, 11, 5]
+    star = list(zip(rng, jiv))
+    [add(c, 'куйганг') for c in seq if ground_sky_func(c)]
+    
+    rng = [2, -2, 3, -4, 5, -5, 2, -2, 3, -4, 5, -5]
+    jiv = list(range(1, 13))
+    star = list(zip(rng, jiv))
+    [add(c, 'ошибка инь-ян') for c in seq if ground_sky_func(c)]
+    
+    rng = [1, -1, 2, -2, 3, 3, -4, 5]
+    jiv = [5, 6, 7, 6, 9, 7, 12, 1]
+    star = list(zip(rng,jiv))
+    [add(c, 'одинокий феникс') for c in seq if ground_sky_func(c)]
+    
+    rng = [1, 1, 1, 1, 2, 3, 4, 5]
+    jiv = [2, 5, 8, 11] * 2
+    star = list(zip(rng,jiv))
+    [add(c, 'денежное хранилище') for c in seq if ground_func(c, abs(dd))]
+
+    
+    if len(set(filter(lambda x: x == 11 or x == 5, list(map(lambda x: x[1], kart[1 if not kart[0] else 0: ]))))) > 1:
+        add(-1, 'сети небес')
         
-    if h == '' or not isinstance(h, int):
-        result.append(['','',''])
-        #[time[i] for i in range(13)]
+    rng = list(range(1,6))
+    jiv = [4, 7, 7, 10, 1]
+    star = list(zip(rng,jiv))
+    if ground_func(2, dd):
+        add(-1, 'янский край')
+    if describe:
+        return polar, baz, lst
     else:
-        if 0 <= h < 1:
-            result.append(['yan']+time[0])
-        elif 1 <= h < 3:
-            result.append(['in']+time[1])
-        if 3 <= h < 5:
-            result.append(['yan']+time[2])
-        if 5 <= h < 7:
-            result.append(['in']+time[3])
-        if 7 <= h < 9:
-            result.append(['yan']+time[4])
-        if 9 <= h < 11:
-            result.append(['in']+time[5])
-        if 11 <= h < 13:
-            result.append(['yan']+time[6])
-        if 13 <= h < 15:
-            result.append(['in']+time[7])
-        if 15 <= h < 17:
-            result.append(['yan']+time[8])
-        if 17 <= h < 19:
-            result.append(['in']+time[9])
-        if 19 <= h < 21:
-            result.append(['yan']+time[10])
-        if 21 <= h < 23:
-            result.append(['in']+time[11])
-        if 23 <= h <= 24:
-            result.append(['yan']+time[12])    
-    result[0],result[1],result[-2],result[-1]=result[-1],result[0],result[1],result[-2]
-    return result
-
-
-def bz(day_list):
-    z = ['крыса', 'бык', 'тигр', 'кролик', 'дракон', 
-         'змея', 'лошадь', 'коза', 'обезьяна', 'петух',
-         'собака', 'свинья']
-
-    lst = []
-    if len(day_list[0]) > 2:
-        for i in range(len(day_list)):
-            if i == 0:
-                lst.append(['9999', '9999'])
-            else:    
-                lst.append(day_list[i].copy())
-    else:
-        for i in range(len(day_list)):
-            lst.append(day_list[i].copy())
-
-    p = 1 if len(lst[0][0]) not in (1,2,3) else 0     
-    for i in range(len(lst)):
-        if p == 1 and i == 3:
-            break
-        if len(lst[p+i][0]) == 3:
-            lst[p+i][0]='+'
-        if len(lst[p+i][0]) == 2:
-            lst[p+i][0]='-'
-        if 'дерево' in lst[p+i][1]:
-            lst[p+i][1]=lst[p+i][1].replace('дерево', '0')
-        if 'огонь' in lst[p+i][1]:
-            lst[p+i][1]=lst[p+i][1].replace('огонь', '1')
-        if 'земля' in lst[p+i][1]:
-            lst[p+i][1]=lst[p+i][1].replace('земля', '2')
-        if 'металл' in lst[p+i][1]:
-            lst[p+i][1]=lst[p+i][1].replace('металл', '3')
-        if 'вода' in lst[p+i][1]:
-            lst[p+i][1]=lst[p+i][1].replace('вода', '4')            
-    dd = lst[1][0]+lst[1][1]
-  
-    baz = []
-    p = 1 if len(lst[0][0]) not in (1,2,3) else 0
+        return polar, baz
     
-    for j in range(len(lst)):
-        if p == 1 and j == 3:
-            break 
-        if int(dd[1]) == int(lst[p+j][1][0]):
-            if lst[p+j][0] == dd[0]:
-                baz.append(["братство"])
-            elif lst[p+j][0] != dd[0]:
-                baz.append(["грабитель богатства"])
-        elif int(dd[1]) == (int(lst[p+j][1][0])+4)%5:
-            if lst[p+j][0] == dd[0]:
-                baz.append(["дух наслаждения"])
-            elif lst[p+j][0] != dd[0]:
-                baz.append(["дух мятежа"])      
-        elif int(dd[1]) == (int(lst[p+j][1][0])+3)%5:
-            if lst[p+j][0] == dd[0]:
-                baz.append(["косое богатство"])
-            elif lst[p+j][0] != dd[0]:
-                baz.append(["прямое богатство"])   
-        elif int(dd[1]) == (int(lst[p+j][1][0])+2)%5:
-            if lst[p+j][0] == dd[0]:
-                baz.append(["косая власть"])
-            elif lst[p+j][0] != dd[0]:
-                baz.append(["прямая власть"])
-        elif int(dd[1]) == (int(lst[p+j][1][0])+1)%5:
-            if lst[p+j][0] == dd[0]:
-                baz.append(["косая печать"])
-            elif lst[p+j][0] != dd[0]:
-                baz.append(["прямая печать"])
-                
-    if p == 1:
-        del baz[0]    
-    elif p == 0:
-        del baz[1]
-
-    klmn = []
-    for k in range(4):
-        if (((z.index(lst[1][1][2:]) in (0,4,8) and k !=1) or (z.index(lst[3][1][2:]) in (0,4,8) and k != 3)) and lst[k][1][2:].count(z[9]) > 0)or (
-                ((z.index(lst[1][1][2:]) in (3,7,11) and k !=1) or (z.index(lst[3][1][2:]) in (3,7,11) and k != 3)) and lst[k][1][2:].count(z[0]) > 0) or (
-                    ((z.index(lst[1][1][2:]) in (2,6,10) and k !=1) or (z.index(lst[3][1][2:]) in (2,6,10) and k != 3)) and lst[k][1][2:].count(z[3]) > 0) or (
-                        ((z.index(lst[1][1][2:]) in (1,5,9) and k !=1) or (z.index(lst[3][1][2:]) in (1,5,9) and k != 3)) and lst[k][1][2:].count(z[6]) > 0):
-            klmn.append([k, 'цветок персика'])
-        if (((z.index(lst[1][1][2:]) in (0,4,8) and k !=1) or (z.index(lst[3][1][2:]) in (0,4,8) and k != 3)) and lst[k][1][2:].count(z[2]) > 0)or (
-                ((z.index(lst[1][1][2:]) in (3,7,11) and k !=1) or (z.index(lst[3][1][2:]) in (3,7,11) and k != 3)) and lst[k][1][2:].count(z[5]) > 0) or (
-                    ((z.index(lst[1][1][2:]) in (2,6,10) and k !=1) or (z.index(lst[3][1][2:]) in (2,6,10) and k != 3)) and lst[k][1][2:].count(z[8]) > 0) or (
-                        ((z.index(lst[1][1][2:]) in (1,5,9) and k !=1) or (z.index(lst[3][1][2:]) in (1,5,9) and k != 3)) and lst[k][1][2:].count(z[11]) > 0):
-            klmn.append([k, 'почтовая лошадь'])
-        if (((z.index(lst[1][1][2:]) in (0,4,8) and k !=1) or (z.index(lst[3][1][2:]) in (0,4,8) and k != 3)) and lst[k][1][2:].count(z[0]) > 0)or (
-                ((z.index(lst[1][1][2:]) in (3,7,11) and k !=1) or (z.index(lst[3][1][2:]) in (3,7,11) and k != 3)) and lst[k][1][2:].count(z[3]) > 0) or (
-                    ((z.index(lst[1][1][2:]) in (2,6,10) and k !=1) or (z.index(lst[3][1][2:]) in (2,6,10) and k != 3)) and lst[k][1][2:].count(z[6]) > 0) or (
-                        ((z.index(lst[1][1][2:]) in (1,5,9) and k !=1) or (z.index(lst[3][1][2:]) in (1,5,9) and k != 3)) and lst[k][1][2:].count(z[9]) > 0):
-            klmn.append([k, 'звезда генерала'])
-        if (((z.index(lst[1][1][2:]) in (0,4,8) and k !=1) or (z.index(lst[3][1][2:]) in (0,4,8) and k != 3)) and lst[k][1][2:].count(z[4]) > 0)or (
-                ((z.index(lst[1][1][2:]) in (3,7,11) and k !=1) or (z.index(lst[3][1][2:]) in (3,7,11) and k != 3)) and lst[k][1][2:].count(z[7]) > 0) or (
-                    ((z.index(lst[1][1][2:]) in (2,6,10) and k !=1) or (z.index(lst[3][1][2:]) in (2,6,10) and k != 3)) and lst[k][1][2:].count(z[10]) > 0) or (
-                        ((z.index(lst[1][1][2:]) in (1,5,9) and k !=1) or (z.index(lst[3][1][2:]) in (1,5,9) and k != 3)) and lst[k][1][2:].count(z[1]) > 0):
-            klmn.append([k, 'звезда искусств'])
-        if (((z.index(lst[1][1][2:]) in (0,4,8) and k !=1) or (z.index(lst[3][1][2:]) in (0,4,8) and k != 3)) and lst[k][1][2:].count(z[11]) > 0)or (
-                ((z.index(lst[1][1][2:]) in (3,7,11) and k !=1) or (z.index(lst[3][1][2:]) in (3,7,11) and k != 3)) and lst[k][1][2:].count(z[2]) > 0) or (
-                    ((z.index(lst[1][1][2:]) in (2,6,10) and k !=1) or (z.index(lst[3][1][2:]) in (2,6,10) and k != 3)) and lst[k][1][2:].count(z[5]) > 0) or (
-                        ((z.index(lst[1][1][2:]) in (1,5,9) and k !=1) or (z.index(lst[3][1][2:]) in (1,5,9) and k != 3)) and lst[k][1][2:].count(z[8]) > 0):
-            klmn.append([k, 'звезда бедствий'])
-
-    for k in range(4):
-            if (z.index(lst[3][1][2:]) == (0) and k !=3 and lst[k][1][2:].count(z[3]) > 0) or (
-                   z.index(lst[3][1][2:]) == (3) and k !=3 and lst[k][1][2:].count(z[0]) > 0) or (
-                       z.index(lst[3][1][2:]) == (1) and k !=3 and lst[k][1][2:].count(z[2]) > 0) or (
-                           z.index(
-                lst[3][1][2:]) == (2) and k !=3 and lst[k][1][2:].count(z[1]) > 0) or (
-                    z.index(lst[3][1][2:]) == (4) and k !=3 and lst[k][1][2:].count(z[11]) > 0) or (
-                        z.index(lst[3][1][2:]) == (11) and k !=3 and lst[k][1][2:].count(z[4]) > 0) or (
-                            z.index(
-                lst[3][1][2:]) == (5) and k !=3 and lst[k][1][2:].count(z[10]) > 0) or (
-                    z.index(lst[3][1][2:]) == (10) and k !=3 and lst[k][1][2:].count(z[5]) > 0) or (
-                        z.index(lst[3][1][2:]) == (6) and k !=3 and lst[k][1][2:].count(z[9]) > 0) or (
-                            z.index(
-                lst[3][1][2:]) == (9) and k !=3 and lst[k][1][2:].count(z[6]) > 0) or (
-                    z.index(lst[3][1][2:]) == (7) and k !=3 and lst[k][1][2:].count(z[8]) > 0) or (
-                        z.index(lst[3][1][2:]) == (8) and k !=3 and lst[k][1][2:].count(z[7]) > 0):
-                    klmn.append([k, 'красный луань'])
-                    
-    for i in range(12):
-        if z.index(z[i]) == (z.index(lst[3][1][2:]) + 7)%12:
-            for c in range(4):
-                if z[i] in lst[c][1]:
-                    klmn.append([c, 'исходное созвездие М(ян)/Ж(инь)'])
-        if z.index(z[i]) == (z.index(lst[3][1][2:]) + 5)%12:
-            for c in range(4):
-                if z[i] in lst[c][1]:
-                    klmn.append([c, 'исходное созвездие М(инь)/Ж(ян)'])
-    if z[i] in ((z[(z.index(lst[3][1][2:])+3)%12]),(
-            z[(z.index(lst[3][1][2:])+2)%12]),(
-                z[(z.index(lst[3][1][2:])+1)%12])):
-        for c in range(4):
-            if z[i] in lst[c][1] and c != 3:
-                klmn.append([c, 'приют одиночества (для М)'])
-    if z[i] in (z[1], z[4], z[7], z[10]):
-        for c in range(4):
-            if z[i] in lst[c][1] and c != 3:
-                klmn.append([c, 'приют одиночества (для Ж)'])
-                
-    seti = 0
-    lovushka = 0
-    seti1 = 0
-    lovushka1 = 0           
-    for j in range(4):
-        if (((int(dd[1]) == 0 and dd[0] == '-') or (int(dd[1]) == 2 and dd[0] == '-')) and (z[8] in lst[j][1] or z[0] in lst[j][1])) or (
-            ((int(dd[1]) == 0 and dd[0] == '+') or (int(dd[1]) == 2 and dd[0] == '+') or (int(dd[1]) == 3 and dd[0] == '+')) and (z[1] in lst[j][1] or z[7] in lst[j][1])) or (
-                (int(dd[1]) == 1) and (z[11] in lst[j][1] or z[9] in lst[j][1])) or (
-                    (int(dd[1]) == 3 and dd[0] == '-') and (z[2] in lst[j][1] or z[6] in lst[j][1])) or (
-                        (int(dd[1]) == 4) and (z[3] in lst[j][1] or z[5] in lst[j][1])):
-            klmn.append([j, "благородный"])
-        if (((int(dd[1]) == 0 and dd[0] == '+') and (z[2] in lst[j][1])) or (
-            (int(dd[1]) == 0 and dd[0] == '-') and (z[3] in lst[j][1])) or (
-                (int(dd[1]) in (1, 2) and dd[0] == '+') and (z[5] in lst[j][1])) or (
-                    (int(dd[1]) in (1, 2) and dd[0] == '-') and (z[6] in lst[j][1])) or (
-                        (int(dd[1]) == 3 and dd[0] == '+') and (z[8] in lst[j][1])) or(
-                            (int(dd[1]) == 3 and dd[0] == '-') and (z[9] in lst[j][1])) or(
-                                (int(dd[1]) == 4 and dd[0] == '+') and (z[11] in lst[j][1])) or(
-                                    (int(dd[1]) == 4 and dd[0] == '-') and (z[0] in lst[j][1]))):
-            klmn.append([j, "10 небесных стволов"])
-        if (((int(dd[1]) == 0 and dd[0] == '+') and (z[5] in lst[j][1])) or (
-            (int(dd[1]) == 0 and dd[0] == '-') and (z[6] in lst[j][1])) or (
-                (int(dd[1]) in (1, 2) and dd[0] == '+') and (z[8] in lst[j][1])) or (
-                    (int(dd[1]) in (1, 2) and dd[0] == '-') and (z[9] in lst[j][1])) or (
-                        (int(dd[1]) == 3 and dd[0] == '+') and (z[11] in lst[j][1])) or(
-                            (int(dd[1]) == 3 and dd[0] == '-') and (z[0] in lst[j][1])) or(
-                                (int(dd[1]) == 4 and dd[0] == '+') and (z[2] in lst[j][1])) or(
-                                    (int(dd[1]) == 4 and dd[0] == '-') and (z[3] in lst[j][1]))):
-            klmn.append([j, "звезда академика"])
-        if (((int(dd[1]) == 0 and dd[0] == '+') and (z[3] in lst[j][1])) or (
-            (int(dd[1]) == 0 and dd[0] == '-') and (z[4] in lst[j][1] or z[2] in lst[j][1])) or (
-                (int(dd[1]) in (1, 2) and dd[0] == '+') and (z[6] in lst[j][1])) or (
-                    (int(dd[1]) in (1, 2) and dd[0] == '-') and (z[5] in lst[j][1] or z[7] in lst[j][1])) or (
-                        (int(dd[1]) == 3 and dd[0] == '+') and (z[9] in lst[j][1])) or(
-                            (int(dd[1]) == 3 and dd[0] == '-') and (z[8] in lst[j][1] or z[10] in lst[j][1])) or(
-                                (int(dd[1]) == 4 and dd[0] == '+') and (z[0] in lst[j][1])) or(
-                                    (int(dd[1]) == 4 and dd[0] == '-') and (z[1] in lst[j][1]  or z[11] in lst[j][1]))):
-            klmn.append([j, "овечий нож"])
-        if (((int(dd[1]) == 0 and dd[0] in '+-') and (z[6] in lst[j][1])) or (
-            (int(dd[1]) == 1 and dd[0] == '+') and (z[2] in lst[j][1])) or (
-                (int(dd[1]) == 1 and dd[0] == '-') and (z[7] in lst[j][1])) or (
-                    (int(dd[1]) == 2 and dd[0] in '+-') and (z[4] in lst[j][1])) or (
-                        (int(dd[1]) == 3 and dd[0] == '+') and (z[10] in lst[j][1])) or(
-                            (int(dd[1]) == 3 and dd[0] == '-') and (z[9] in lst[j][1])) or(
-                                (int(dd[1]) == 4 and dd[0] == '+') and (z[0] in lst[j][1])) or(
-                                    (int(dd[1]) == 4 and dd[0] == '-') and (z[8] in lst[j][1]))):
-            klmn.append([j, "ша цветущего персика"])
-        if (((int(dd[1]) == 0 and dd[0] in '+') and (z[9] in lst[j][1])) or (
-                (int(dd[1]) == 0 and dd[0] == '-') and (z[8] in lst[j][1])) or (
-                    (int(dd[1]) == 1 and dd[0] == '+') and (z[0] in lst[j][1])) or (
-                        (int(dd[1]) == 1 and dd[0] in '-') and (z[11] in lst[j][1])) or (
-                            (int(dd[1]) == 2 and dd[0] == '+') and (z[3] in lst[j][1])) or(
-                                (int(dd[1]) == 2 and dd[0] == '-') and (z[2] in lst[j][1])) or(
-                                    (int(dd[1]) == 3 and dd[0] == '+') and (z[6] in lst[j][1])) or(
-                                        (int(dd[1]) == 3 and dd[0] == '-') and (z[5] in lst[j][1])) or(
-                                            (int(dd[1]) == 4 and dd[0] == '+') and (z[1] in lst[j][1] or z[7] in lst[j][1])) or(
-                                                (int(dd[1]) == 4 and dd[0] == '-') and (z[4] in lst[j][1] or z[10] in lst[j][1]))):
-            klmn.append([j, "небесная добродетель"])
-        if (((int(dd[1]) == 0 and dd[0] in '+') and (z[4] in lst[j][1])) or (
-                (int(dd[1]) == 0 and dd[0] == '-') and (z[5] in lst[j][1])) or (
-                    (int(dd[1]) == 1 and dd[0] == '+') and (z[7] in lst[j][1])) or (
-                        (int(dd[1]) == 1 and dd[0] in '-') and (z[8] in lst[j][1])) or (
-                            (int(dd[1]) == 2 and dd[0] == '+') and (z[7] in lst[j][1])) or(
-                                (int(dd[1]) == 2 and dd[0] == '-') and (z[8] in lst[j][1])) or(
-                                    (int(dd[1]) == 3 and dd[0] == '+') and (z[10] in lst[j][1])) or(
-                                        (int(dd[1]) == 3 and dd[0] == '-') and (z[11] in lst[j][1])) or(
-                                            (int(dd[1]) == 4 and dd[0] == '+') and (z[1] in lst[j][1])) or(
-                                                (int(dd[1]) == 4 and dd[0] == '-') and (z[2] in lst[j][1]))):
-             klmn.append([j, "золотая карета"])
-        if (((int(lst[j][1][0]) == 3 and lst[j][0] in '+') and (z[4] in lst[j][1] or z[10] in lst[j][1])) or(
-                (int(lst[j][1][0]) == 4 and lst[j][0] in '+') and (z[4] in lst[j][1])) or (
-                    (int(lst[j][1][0]) == 2 and lst[j][0] in '+') and (z[10] in lst[j][1]))):
-             klmn.append([j, "куйганг"])
-        if (((int(lst[j][1][0]) == 1 and lst[j][0] in '+') and (z[0] in lst[j][1] or z[6] in lst[j][1])) or (
-                (int(lst[j][1][0]) == 1 and lst[j][0] in '-') and (z[1] in lst[j][1] or z[7] in lst[j][1])) or (
-                    (int(lst[j][1][0]) == 2 and lst[j][0] in '+') and (z[2] in lst[j][1] or z[8] in lst[j][1])) or (
-                        (int(lst[j][1][0]) == 3 and lst[j][0] in '-') and (z[3] in lst[j][1] or z[9] in lst[j][1])) or (
-                            (int(lst[j][1][0]) == 4 and lst[j][0] in '+') and (z[4] in lst[j][1] or z[10] in lst[j][1])) or(
-                                (int(lst[j][1][0]) == 4 and lst[j][0] in '-') and (z[5] in lst[j][1] or z[11] in lst[j][1]))):
-            klmn.append([j, "ошибка инь-ян"])
-        if (((int(lst[j][1][0]) == 0 and lst[j][0] in '+') and (z[4] in lst[j][1])) or (
-                (int(lst[j][1][0]) in (0,1) and lst[j][0] in '-') and (z[5] in lst[j][1])) or (
-                    (int(lst[j][1][0]) == 3 and lst[j][0] in '-') and (z[11] in lst[j][1])) or (
-                        (int(lst[j][1][0]) == 2 and lst[j][0] in '+') and (z[8] in lst[j][1] or z[6] in lst[j][1])) or (
-                            (int(lst[j][1][0]) == 4 and lst[j][0] in '+') and (z[2] in lst[j][1] or z[0] in lst[j][1])) or(
-                                (int(lst[j][1][0]) == 1 and lst[j][0] in '+') and (z[6] in lst[j][1]))):
-            klmn.append([j, "одинокий феникс"])
-        if (((int(lst[j][1][0]) in (0,3) and lst[j][0] in '+') and (z[4] in lst[j][1])) or (
-                (int(lst[j][1][0]) in (0,3) and lst[j][0] in '-') and (z[5] in lst[j][1])) or (
-                    (int(lst[j][1][0]) in (1,4) and lst[j][0] in '+') and (z[8] in lst[j][1])) or (
-                        (int(lst[j][1][0]) in (1,4) and lst[j][0] in '-') and (z[11] in lst[j][1])) or (
-                            (int(lst[j][1][0]) == 2 and lst[j][0] in '+') and (z[10] in lst[j][1])) or(
-                                (int(lst[j][1][0]) == 2 and lst[j][0] in '-') and (z[1] in lst[j][1]))):
-            klmn.append([j, "звезда банкротства"])
-            
-        if lst[j][1].count(z[10]):
-            seti += 1
-        if lst[j][1].count(z[4]):
-            lovushka +=1
-        if lst[j][1].count(z[11]):
-            seti1 += 1
-        if lst[j][1].count(z[5]):
-            lovushka1 += 1            
-    if seti != 0 and seti1 != 0:
-        klmn.append([7,"сети небес"])
-    if lovushka != 0 and lovushka1 != 0:
-        klmn.append([7,"ловушка земли"])
-    klmn.sort()
     
-    for i in range (len(klmn)):
-        if klmn[i][0] == 0:
-            klmn[i][0] = 'час'
-        if klmn[i][0] == 1:
-            klmn[i][0] = 'день'
-        if klmn[i][0] == 2:
-            klmn[i][0] = 'месяц'
-        if klmn[i][0] == 3:
-            klmn[i][0] = 'год'
-        if klmn[i][0] == 7:
-            del klmn[i][0]
-    if 'час' not in [i[0] for i in klmn]:
-        klmn.insert(0, ['час', None])
-    return ([baz]+[klmn])
-
-## update
-def lbztodf(s, f, g):
-    import numpy as np
-    import pandas as pd
-    
-    maps = ['-'.join(i) if any(i) else np.nan for i in f]
-    stars = pd.DataFrame(g[1]).pivot(columns=0, values=1)
-    L = max(len(g[0]), max([stars.loc[:,i].dropna().shape[0] for i in stars.columns]))
-    c = []
-    for i in [stars.loc[:,i].dropna().tolist() for i in stars.columns]:
-        while L > len(i):
-            i.append(np.nan)
-        c.append(i)
-    stars = pd.DataFrame.from_dict(dict(zip(stars.columns.tolist(), c)))
-    
-    if 'день' not in stars.columns:
-        stars['день'] = np.nan
-    elif 'месяц' not in stars.columns:
-        stars['месяц'] = np.nan
-    elif 'час' not in stars.columns:
-        stars['час'] = np.nan
-    elif 'год' not in stars.columns:
-        stars['год'] = np.nan
-    
-    tag = ['час','месяц','год']
-    stars['polarity'] = [*map(': '.join, zip(tag[3-len(g[0]):], [i[0] for i in g[0]]))] + ([np.nan]*(stars.shape[0] - len(g[0])))
-    stars['p_year'] = [maps[-1]] * (stars.shape[0])
-    stars['p_month'] = [maps[-2]] * (stars.shape[0])
-    stars['p_day'] = [maps[-3]] * (stars.shape[0])
-    stars['p_hour'] = [maps[-4]] * (stars.shape[0])
-    stars['date'] = pd.Timestamp(year = s[0], month = s[1], day = s[2], hour = s[-1])
-    stars = stars.rename(columns={'год':'s_year','день':'s_day','месяц':'s_month','час':'s_hour'})[['date', 's_hour', 's_day', 's_month', 's_year', 'polarity', 'p_hour', 'p_day', 'p_month', 'p_year']].convert_dtypes()
-    return stars
-
-def checkbz(y:int, m:int, d:int, *h:int):
+def checkbz(y:int, m:int, d:int, h:int=None):
     if all([isinstance(i, int) for i in [y,m,d]]):
-        s = [*map(int, [y,m,d])]
-    if not h or not(isinstance(h[0], int) or h[0].isdigit()):
-        h=''
-    elif 23 < int(h[0]):
-        raise ValueError(f'hour must be < 24  (NOT {h[0]})')
-    else:
-        h = abs(h[0])
+        s = list(map(int, [y,m,d]))
+    if h and 23 < int(h):
+        raise ValueError(f'hour must be < 23(:59:59) (NOT {h})')
+    elif not h:
+            h = None
     s.append(h)
-    if 1 > m  or m > 12:
+    if not 1 <= m <= 12:
         raise ValueError(f'month must be between 1 and 12 (NOT {m})')
     mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     if (y % 4 == 0 and y % 100 != 0) or y % 400 == 0:
         mes[1] = mes[1] + 1
     if mes[int(m)-1]%int(d) >= mes[int(m)-1]:
         raise ValueError(f'{m} month dont have {d}`s day')
-    return lbztodf(s, day(*s), bz(day(*s)))
+    return s
 
-def bzdf(df:bool=True, *s):
-    if s:
-        return checkbz(*s)
+    
+def bzdf(y,m,d, *h, todf:bool=False):
+    dates = checkbz(y, m, d, *h)
+    kart = makekart(*dates)
+    star = stars(kart)
+    elements = dict(zip(list(range(1,6)), ['дерево', 'огонь', 'земля', 'металл', 'вода'])) 
+    bsts = dict(zip(list(range(1,13)),
+                    ['крыса', 'бык', 'тигр', 'кролик', 'дракон', 'змея', 'лошадь', 'коза',
+                     'обезьяна', 'петух', 'собака', 'свинья']))
+    func = lambda x: '-'.join(['инь' if x<0 else 'ян', elements[abs(x)]]) if x else '-'
+    if not todf:
+        dates.reverse()
+        cols = list(map(lambda x: x[0], star[1]))
+        [star[0].append(['-'] * (len(cols) - len(star[0])))]
+        [star[0][i].extend('-') for i in range(len(cols)) if len(star[0][i]) < 2]
+        [print(
+            '\t|'.join([
+                str(dates[i]) if i < 4 and dates[i] != None else '*',
+                ': '.join(
+                    [cols[i],
+                     ' '.join([
+                         '-' if not kart[i] else func(kart[i][0]),
+                         '' if not kart[i] else bsts[kart[i][1]]
+                     ]) if i < 4 else '']
+                ), star[0][i][1]]),
+            ', '.join(star[1][i][1:]),
+            sep='\n\t' if star[1][i][1:] else '',
+        ) for i in range(len(a))]
+        return
     else:
-        y, m, d, h = int(input('year: ')), int(input('month: ')), int(input('day: ')), input('hour(:00==:59): ')
-        h = int(h) if h.isdigit() else ''
-        if not df:
-            s = [y, m, d, h]
-            f = day(*s)
-            g = bz(f)
-            print(*s,*f,*g, sep='\n')
-            return s
-        else:
-            return checkbz(y,m,d,h)
-# bzdf(df=False)
+        import numpy as np
+        import pandas as pd
+        
+        print(dates+star[1], sep='\n\n')
+        cols = np.array(
+            ['date'] 
+            + list(map(lambda x: x[0], star[1]))
+            + ['polarity', 'p_hour', 'p_day', 'p_month', 'p_year'])  
+    df = pd.DataFrame(star[1]).T.iloc[1:,:].reset_index(drop=True)
+    df = pd.concat([
+        pd.Series(np.nan),
+        df,
+        pd.Series(star[0])[pd.Series(star[0]).str.len() > 1].str.join(': ').reset_index(drop=True)
+    ], axis=1, ignore_index=True)
+    
+    lst = list(' '.join([
+        '' if not kart[i] else func(kart[i][0]),
+        '' if not kart[i] else bsts[kart[i][1]]]) for i in range(4))
+    df['p_hour'] = np.nan if not h else lst[0]
+    df['p_day'] = lst[1]
+    df['p_month'] = lst[2]
+    df['p_year'] = lst[3]
+    df[0] = pd.Timestamp(year = dates[0], month = dates[1], day = dates[2], hour = dates[-1])
+    df.columns = cols
+    df.rename(columns={'год':'s_year','месяц':'s_month','день':'s_day','час':'s_hour'}, inplace=True)
+    df = df.convert_dtypes({'object':'string'}).replace({None:np.nan})
+    df = df.convert_dtypes()
+
+    return df
+
+# bzdf(2018, 7, 26, todf=True)
