@@ -304,8 +304,7 @@ def bzdf(y,m,d, *h, todf:bool=False):
     df[0] = pd.Timestamp(year = dates[0], month = dates[1], day = dates[2], hour = dates[-1])
     df.columns = cols
     df.rename(columns={'год':'s_year','месяц':'s_month','день':'s_day','час':'s_hour'}, inplace=True)
-    df = df.convert_dtypes({'object':'string'}).replace({None:np.nan})
-    df = df.convert_dtypes()
+    df = df.replace({None:np.nan}).convert_dtypes()
 
     return df
 
