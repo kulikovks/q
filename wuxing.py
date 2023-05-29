@@ -277,13 +277,13 @@ def bzdf(y,m,d, *h, todf:bool=False):
                 ), star[0][i][1]]),
             ', '.join(star[1][i][1:]),
             sep='\n\t' if star[1][i][1:] else '',
-        ) for i in range(len(a))]
+        ) for i in range(len(cols))]
         return
     else:
         import numpy as np
         import pandas as pd
         
-        print(dates+star[1], sep='\n\n')
+        
         cols = np.array(
             ['date'] 
             + list(map(lambda x: x[0], star[1]))
