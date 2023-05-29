@@ -47,13 +47,18 @@ def makekart(y:int, m:int, d:int, *h, todf:bool=False, verbose:bool=False)->list
     karta.append([lst[k][0] if not k % 2 else -(lst[k][0]), lst[k][1]])
     karta.append([M[0] if not lst.index(M) % 2 else -(M[0]), M[1]])
     karta.append([G[0] if not lst.index(G) % 2 else -(G[0]), G[1]] if M not in zv[0:2]
+<<<<<<< HEAD
                   else [lst[lst.index(G) - 1] if not (lst.index(G) - 1) % 2 else [-(lst[lst.index(G) - 1][0]), lst[lst.index(G) - 1][1]]])
+=======
+                  else lst[lst.index(G) - 1] if not (lst.index(G) - 1) % 2 else [-(lst[lst.index(G) - 1][0]), lst[lst.index(G) - 1][1]])
+>>>>>>> 427e62f (okbob)
 
     if verbose:
+        func = lambda x: '-'.join(['инь' if x<0 else 'ян', elements[abs(x)]])
         elements = dict(zip(n, ['дерево', 'огонь', 'земля', 'металл', 'вода']))
         bsts = dict(zip(z, ['крыса', 'бык', 'тигр', 'кролик', 'дракон', 'змея', 'лошадь', 'коза', 'обезьяна', 'петух', 'собака', 'свинья']))
-        print(*zip(['-'.join(['yan' if l[0] > 0 else 'in', elements[abs(l[0])]]) for l in karta if l],
-                   [bsts[l[1]] for l in karta if l]))
+        print(*list((func(karta[i][0]), bsts[karta[i][1]]) for i in range(1 if h is None else 0, 4)))
+
     return karta
 
 
@@ -77,6 +82,7 @@ def stars(kart:list, describe:bool=False)->list:
         if describe and name not in lst.keys():
             lst[name] = descr(star, elems)
         return
+    
     
     forzip = [['час'], ['день'], ['месяц'], ['год']]
     polar = list(i.copy() for i in forzip)
@@ -154,13 +160,12 @@ def stars(kart:list, describe:bool=False)->list:
     star = list(zip(rng, jiv))
     [add(c, 'цветущий балдахин') for c in seq if day_year_func(c)]
 
-    ## no lst      
+    ## not describe      
     rng = [(0,6), (4, 0), (-2,0),  (0,9), (5, 0), (-4,0),  (0,12), (1, 0), (-5,0),  (0,3), (2, 0), (-1,0)] 
     jiv = list(range(1,13))
     star = list(zip(rng, jiv))
     func = lambda x: any(i[0][0] == kart[x][0] or i[0][1] == kart[x][1] for i in star if kart[2][1] == i[1])
     [baz[c].append('небесная добродетель') for c in seq if func(c)]
-#     [add(c, 'небесная добродетель') for c in seq if func(c)]    ##
 
     elems = 1
     rng = list(); list(map(lambda x: rng.extend([x, x, -x, -x]), range(1,6)))
@@ -216,6 +221,7 @@ def stars(kart:list, describe:bool=False)->list:
     jiv = [2, 5, 8, 11] * 2
     star = list(zip(rng,jiv))
     [add(c, 'денежное хранилище') for c in seq if ground_func(c, abs(dd))]
+<<<<<<< HEAD
 
     func = lambda x: (
         (5 in list(i[1] for i in x[-1::-2]) and 6 in list(i[1] for i in x[-2::-1])) 
@@ -226,6 +232,20 @@ def stars(kart:list, describe:bool=False)->list:
     func = lambda x: (
         (11 in list(i[1] for i in x[-1::-2]) and 12 in list(i[1] for i in x[-2::-1]))
         or (12 in list(i[1] for i in x[-1::-2]) and 11 in list(i[1] for i in x[-2::-1])))
+=======
+    
+    ## not describe 
+    func = lambda x: (
+        (5 in list(i[1] for i in x[1::2]) and 6 in list(i[1] for i in x[1 if x[0] is None else 0:])) 
+        or (6 in list(i[1] for i in x[1::2]) and 5 in list(i[1] for i in x[1 if x[0] is None else 0:])))
+    if func(kart):
+        baz[-1].append('сеть земли')
+        
+    ## not describe
+    func = lambda x: (
+        (11 in list(i[1] for i in x[1::2]) and 12 in list(i[1] for i in x[1 if x[0] is None else 0:]))
+        or (12 in list(i[1] for i in x[1::2]) and 11 in list(i[1] for i in x[1 if x[0] is None else 0:])))
+>>>>>>> 427e62f (okbob)
     if func(kart):
         baz[-1].append('сеть небес')
         
@@ -243,7 +263,7 @@ def stars(kart:list, describe:bool=False)->list:
 def checkbz(y:int, m:int, d:int, h:int=None):
     if all([isinstance(i, int) for i in [y,m,d]]):
         s = list(map(int, [y,m,d]))
-    if h and 23 < int(h):
+    if not h is None and 23 < int(h):
         raise ValueError(f'hour must be < 23(:59:59) (NOT {h})')
     elif not h:
             h = None
@@ -266,7 +286,7 @@ def bzdf(y,m,d, *h, todf:bool=False):
     bsts = dict(zip(list(range(1,13)),
                     ['крыса', 'бык', 'тигр', 'кролик', 'дракон', 'змея', 'лошадь', 'коза',
                      'обезьяна', 'петух', 'собака', 'свинья']))
-    func = lambda x: '-'.join(['инь' if x<0 else 'ян', elements[abs(x)]]) if x else '-'
+    func = lambda x: '-'.join(['инь' if x<0 else 'ян', elements[abs(x)]]) if not x is None else '-'
     if not todf:
         dates.reverse()
         cols = list(map(lambda x: x[0], star[1]))
@@ -290,7 +310,10 @@ def bzdf(y,m,d, *h, todf:bool=False):
         import numpy as np
         import pandas as pd
         
+<<<<<<< HEAD
         
+=======
+>>>>>>> 427e62f (okbob)
         cols = np.array(
             ['date'] 
             + list(map(lambda x: x[0], star[1]))
@@ -316,4 +339,4 @@ def bzdf(y,m,d, *h, todf:bool=False):
 
     return df
 
-# bzdf(2018, 7, 26, todf=True)
+# bzdf(2018, 7, 26, 7, todf=True)
