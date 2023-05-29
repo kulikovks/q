@@ -217,11 +217,17 @@ def stars(kart:list, describe:bool=False)->list:
     star = list(zip(rng,jiv))
     [add(c, 'денежное хранилище') for c in seq if ground_func(c, abs(dd))]
 
-    if len(set(filter(lambda x: x == 11 or x == 12, list(map(lambda x: x[1], kart[1 if not kart[0] else 0:]))))) > 1:
-        add(-1, 'сеть небес')
+    func = lambda x: (
+        (5 in list(i[1] for i in x[-1::-2]) and 6 in list(i[1] for i in x[-2::-1])) 
+        or (6 in list(i[1] for i in x[-1::-2]) and 5 in list(i[1] for i in x[-2::-1])))
+    if func(kart):
+        baz[-1].append('сеть земли')
     
-    if len(set(filter(lambda x: x == 5 or x == 6, list(map(lambda x: x[1], kart[1 if not kart[0] else 0:]))))) > 1:
-        add(-1, 'сеть земли')
+    func = lambda x: (
+        (11 in list(i[1] for i in x[-1::-2]) and 12 in list(i[1] for i in x[-2::-1]))
+        or (12 in list(i[1] for i in x[-1::-2]) and 11 in list(i[1] for i in x[-2::-1])))
+    if func(kart):
+        baz[-1].append('сеть небес')
         
     rng = list(range(1,6))
     jiv = [4, 7, 7, 10, 1]
