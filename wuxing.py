@@ -47,11 +47,7 @@ def makekart(y:int, m:int, d:int, *h, todf:bool=False, verbose:bool=False)->list
     karta.append([lst[k][0] if not k % 2 else -(lst[k][0]), lst[k][1]])
     karta.append([M[0] if not lst.index(M) % 2 else -(M[0]), M[1]])
     karta.append([G[0] if not lst.index(G) % 2 else -(G[0]), G[1]] if M not in zv[0:2]
-<<<<<<< HEAD
-                  else [lst[lst.index(G) - 1] if not (lst.index(G) - 1) % 2 else [-(lst[lst.index(G) - 1][0]), lst[lst.index(G) - 1][1]]])
-=======
                   else lst[lst.index(G) - 1] if not (lst.index(G) - 1) % 2 else [-(lst[lst.index(G) - 1][0]), lst[lst.index(G) - 1][1]])
->>>>>>> 427e62f (okbob)
 
     if verbose:
         func = lambda x: '-'.join(['инь' if x<0 else 'ян', elements[abs(x)]])
@@ -221,18 +217,6 @@ def stars(kart:list, describe:bool=False)->list:
     jiv = [2, 5, 8, 11] * 2
     star = list(zip(rng,jiv))
     [add(c, 'денежное хранилище') for c in seq if ground_func(c, abs(dd))]
-<<<<<<< HEAD
-
-    func = lambda x: (
-        (5 in list(i[1] for i in x[-1::-2]) and 6 in list(i[1] for i in x[-2::-1])) 
-        or (6 in list(i[1] for i in x[-1::-2]) and 5 in list(i[1] for i in x[-2::-1])))
-    if func(kart):
-        baz[-1].append('сеть земли')
-    
-    func = lambda x: (
-        (11 in list(i[1] for i in x[-1::-2]) and 12 in list(i[1] for i in x[-2::-1]))
-        or (12 in list(i[1] for i in x[-1::-2]) and 11 in list(i[1] for i in x[-2::-1])))
-=======
     
     ## not describe 
     func = lambda x: (
@@ -245,7 +229,6 @@ def stars(kart:list, describe:bool=False)->list:
     func = lambda x: (
         (11 in list(i[1] for i in x[1::2]) and 12 in list(i[1] for i in x[1 if x[0] is None else 0:]))
         or (12 in list(i[1] for i in x[1::2]) and 11 in list(i[1] for i in x[1 if x[0] is None else 0:])))
->>>>>>> 427e62f (okbob)
     if func(kart):
         baz[-1].append('сеть небес')
         
@@ -310,10 +293,6 @@ def bzdf(y,m,d, *h, todf:bool=False):
         import numpy as np
         import pandas as pd
         
-<<<<<<< HEAD
-        
-=======
->>>>>>> 427e62f (okbob)
         cols = np.array(
             ['date'] 
             + list(map(lambda x: x[0], star[1]))
