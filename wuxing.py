@@ -3,7 +3,7 @@ def makekart(y:int, m:int, d:int, *h, todf:bool=False, verbose:bool=False)->list
     karta = list()
     n = list(range(1,6))
     z = list(range(1,13))
-    lst = [[n[(i - 1) // 2 % 5], z[(i - 1) % 12]] for i in range(1,62)]
+    lst = [[n[(i - 1) // 2 % 5], z[(i - 1) % 12]] for i in range(1,61)]
 
     G = lst[y % 60 - 4]
     zv = lst[lst.index(G) % 5 * 10 + lst.index(G) % 5 * 2:
@@ -43,12 +43,11 @@ def makekart(y:int, m:int, d:int, *h, todf:bool=False, verbose:bool=False)->list
         for i in range(0, 25, 2):
             if i-1 <= h < i + 1:
                 karta.append([time[i // 2][0] if not time.index(time[i // 2]) % 2 else -(time[i // 2][0]), time[i // 2][1]])
-                              
     
-    karta.append([lst[k][0] if lst.index(lst[k]) % 2 == 0 else -(lst[k][0]), lst[k][1]])
-    karta.append([M[0] if lst.index(M) % 2 == 0 else -(M[0]), M[1]])
+    karta.append([lst[k][0] if not k % 2 else -(lst[k][0]), lst[k][1]])
+    karta.append([M[0] if not lst.index(M) % 2 else -(M[0]), M[1]])
     karta.append([G[0] if not lst.index(G) % 2 else -(G[0]), G[1]] if M not in zv[0:2]
-                  else [lst[G[0]+1][0] if not (lst.index(G) - 1) % 2 else -(lst[G[0]+1][0]), lst[G[0]+1][1]])
+                  else [lst[lst.index(G) - 1] if not (lst.index(G) - 1) % 2 else [-(lst[lst.index(G) - 1][0]), lst[lst.index(G) - 1][1]])
 
     if verbose:
         elements = dict(zip(n, ['дерево', 'огонь', 'земля', 'металл', 'вода']))
