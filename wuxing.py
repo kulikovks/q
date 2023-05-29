@@ -47,7 +47,7 @@ def makekart(y:int, m:int, d:int, *h, todf:bool=False, verbose:bool=False)->list
     karta.append([lst[k][0] if not k % 2 else -(lst[k][0]), lst[k][1]])
     karta.append([M[0] if not lst.index(M) % 2 else -(M[0]), M[1]])
     karta.append([G[0] if not lst.index(G) % 2 else -(G[0]), G[1]] if M not in zv[0:2]
-                  else [lst[lst.index(G) - 1] if not (lst.index(G) - 1) % 2 else [-(lst[lst.index(G) - 1][0]), lst[lst.index(G) - 1][1]])
+                  else [lst[lst.index(G) - 1] if not (lst.index(G) - 1) % 2 else [-(lst[lst.index(G) - 1][0]), lst[lst.index(G) - 1][1]]])
 
     if verbose:
         elements = dict(zip(n, ['дерево', 'огонь', 'земля', 'металл', 'вода']))
