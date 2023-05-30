@@ -40,9 +40,9 @@ def makekart(y:int, m:int, d:int, *h, todf:bool=False, verbose:bool=False)->list
         karta.append(None)
     else:
         time = lst[k % 5 * 10 + 2 * (k % 5):k % 5 * 10 + 2 * (k % 5) + 13]
-        for i in range(0, 24, 2):
-            if i-1 <= h < i + 1:
-                karta.append([time[i // 2][0] if not time.index(time[i // 2]) % 2 else -(time[i // 2][0]), time[i // 2][1]])
+        if k % 5 ==4:
+            time.append(lst[0])
+        karta.append([time[(h + 1) // 2][0] if not (h + 1) // 2 % 2 else -(time[(h + 1) // 2][0]), time[(h + 1) // 2][1]])
     
     karta.append([lst[k][0] if not k % 2 else -(lst[k][0]), lst[k][1]])
     karta.append([M[0] if not lst.index(M) % 2 else -(M[0]), M[1]])
