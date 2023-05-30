@@ -246,10 +246,10 @@ def stars(kart:list, describe:bool=False)->list:
 def checkbz(y:int, m:int, d:int, h:int=None):
     if all([isinstance(i, int) for i in [y,m,d]]):
         s = list(map(int, [y,m,d]))
-    if not h is None and 23 < int(h):
-        raise ValueError(f'hour must be < 23(:59:59) (NOT {h})')
-    elif not h:
-            h = None
+    else:
+        raise ValueError("give me integers")
+    if not h is None and (23 < h or h < 0):
+        raise ValueError(f'hour must be between 00(:00:01) and 23(:59:59) (NOT {h})')
     s.append(h)
     if not 1 <= m <= 12:
         raise ValueError(f'month must be between 1 and 12 (NOT {m})')
